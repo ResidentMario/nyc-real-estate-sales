@@ -1,0 +1,4 @@
+_map.html
+.pynb_checkpoints/
+*.sqlite
+*.whl
