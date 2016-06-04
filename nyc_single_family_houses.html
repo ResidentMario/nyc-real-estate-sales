@@ -1,0 +1,96 @@
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="//cdn.rawgit.com/mourner/rbush/master/rbush.js"></script>
+<script src="//cdn.rawgit.com/newsappsio/spam/master/spam.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3-legend/1.10.0/d3-legend.js"></script>
+
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<style>
+.legend {
+    display: table;
+    margin: 0 auto;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 120px;
+    width: 650px;
+    height: 3000px;
+}
+</style>
+
+<body>
+
+<script type='text/javascript'>
+var color = d3.scale.linear()
+        .domain([0.0, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90])
+        .range(['#eee','#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#08519c','#08306b']);
+
+
+d3.select("body").append("svg")
+        .attr({
+            "class": "legend"
+        })
+        .style({
+            "position": "absolute",
+            "left": 40,
+            "top": 40
+        });
+
+var legend = d3.legend.color()
+        .shapeHeight(300)
+        .shapeWidth(300)
+        .shapePadding(0)
+        .cells(10)
+        .labelOffset(100)
+        .labelFormat(d3.format("%"))
+        .orient("vertical")
+        .ascending(true)
+        .labelAlign("start")
+        .scale(color);
+
+d3.select(".legend")
+    .call(legend);
+
+function color_with_nulls(prop) {
+    if(prop == null) {
+        return "#999";
+    }
+    else {
+        return color(prop);
+    }
+}
+
+d3.json("real_estate_density.geojson", function(error, d) {
+    topojson.presimplify(d);
+//    var map = new ZoomableCanvasMap({
+    var map = new StaticCanvasMap({
+        element: "body",
+        width: 4900,
+        height: 4900,
+        projection: d3.geo.mercator()
+                .center([-74.205, 40.895])
+                .scale(500000),
+        data: [{
+                features: topojson.feature(d, d.objects["nyct2010"]),
+                static: {
+                    paintfeature: function(parameters, d) {
+//                        console.log(d);
+//                        parameters.context.fillStyle = color(d.properties.walkup);
+                        parameters.context.fillStyle = color_with_nulls(d.properties.single);
+                        parameters.context.fill();
+
+                        parameters.context.lineWidth = 1.0;
+//                        parameters.context.strokeStyle = 'rgba(0,0,0,0.2)';
+//                        parameters.context.stroke()
+                    }
+                }
+//                events: {
+//                    click: function(parameters, d) {
+//                        parameters.map.zoom(d)
+//                    }
+//                }
+            }
+        ]
+    });
+    map.init()
+})
+</script>
